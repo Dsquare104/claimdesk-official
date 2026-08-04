@@ -112,7 +112,6 @@
   --input: oklch(0.845 0.016 100);
   --ring: oklch(0.653 0.093 82);
   --shadow-dossier: 0 1px 0 0 oklch(0.845 0.016 100), 0 12px 28px -18px oklch(0.245 0.043 262 / 0.45);
-  --chart-1: oklch(0.646 0.222 41.116);
   --chart-1: oklch(0.245 0.043 262);
   --chart-2: oklch(0.653 0.093 82);
   --chart-3: oklch(0.451 0.045 165);
