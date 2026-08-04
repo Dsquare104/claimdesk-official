@@ -136,19 +136,19 @@ export const majStatutDossier = createServerFn({ method: "POST" })
       .single();
     if (readError) throw new Error(readError.message);
 
-    const patch: Record<string, unknown> = {
-      statut: data.statut,
-      agent_assigne_id: context.userId,
-    };
-
-    if (data.statut === "resolu") {
-      const created = new Date(existing.date_creation).getTime();
-      patch['date_resolution'] = new Date().toISOString();
-      patch['temps_traitement_jours'] = Math.max(
-        0,
-        Math.round((Date.now() - created) / 86_400_000),
-      );
-    }
+    const created = new Date(existing.date_creation).getTime();
+    const patch =
+      data.statut === "resolu"
+        ? {
+            statut: data.statut,
+            agent_assigne_id: context.userId,
+            date_resolution: new Date().toISOString(),
+            temps_traitement_jours: Math.max(
+              0,
+              Math.round((Date.now() - created) / 86_400_000),
+            ),
+          }
+        : { statut: data.statut, agent_assigne_id: context.userId };
 
     const { data: claim, error } = await context.supabase
       .from("claims")
