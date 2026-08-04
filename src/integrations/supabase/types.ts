@@ -14,16 +14,141 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      claims: {
+        Row: {
+          agent_assigne_id: string | null
+          client_id: string
+          client_nom: string
+          commentaire_interne: string | null
+          consentement_rgpd: boolean
+          date_achat: string
+          date_creation: string
+          date_livraison: string | null
+          date_resolution: string | null
+          description: string
+          id: string
+          motif_qualification: string | null
+          numero_dossier: string
+          pays: string
+          produit: string
+          recevable: boolean | null
+          remede: string | null
+          statut: Database["public"]["Enums"]["claim_status"]
+          temps_traitement_jours: number | null
+          type_reclamation: Database["public"]["Enums"]["claim_type"]
+        }
+        Insert: {
+          agent_assigne_id?: string | null
+          client_id: string
+          client_nom: string
+          commentaire_interne?: string | null
+          consentement_rgpd?: boolean
+          date_achat: string
+          date_creation?: string
+          date_livraison?: string | null
+          date_resolution?: string | null
+          description: string
+          id?: string
+          motif_qualification?: string | null
+          numero_dossier?: string
+          pays: string
+          produit: string
+          recevable?: boolean | null
+          remede?: string | null
+          statut?: Database["public"]["Enums"]["claim_status"]
+          temps_traitement_jours?: number | null
+          type_reclamation: Database["public"]["Enums"]["claim_type"]
+        }
+        Update: {
+          agent_assigne_id?: string | null
+          client_id?: string
+          client_nom?: string
+          commentaire_interne?: string | null
+          consentement_rgpd?: boolean
+          date_achat?: string
+          date_creation?: string
+          date_livraison?: string | null
+          date_resolution?: string | null
+          description?: string
+          id?: string
+          motif_qualification?: string | null
+          numero_dossier?: string
+          pays?: string
+          produit?: string
+          recevable?: boolean | null
+          remede?: string | null
+          statut?: Database["public"]["Enums"]["claim_status"]
+          temps_traitement_jours?: number | null
+          type_reclamation?: Database["public"]["Enums"]["claim_type"]
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          consentement_rgpd: boolean
+          created_at: string
+          id: string
+          nom: string | null
+        }
+        Insert: {
+          consentement_rgpd?: boolean
+          created_at?: string
+          id: string
+          nom?: string | null
+        }
+        Update: {
+          consentement_rgpd?: boolean
+          created_at?: string
+          id?: string
+          nom?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "client" | "agent" | "manager"
+      claim_status:
+        | "cree"
+        | "qualifie"
+        | "rejete"
+        | "instruction"
+        | "resolu"
+        | "escalade"
+      claim_type:
+        | "retractation"
+        | "non_conformite"
+        | "livraison"
+        | "facturation"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +275,22 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["client", "agent", "manager"],
+      claim_status: [
+        "cree",
+        "qualifie",
+        "rejete",
+        "instruction",
+        "resolu",
+        "escalade",
+      ],
+      claim_type: [
+        "retractation",
+        "non_conformite",
+        "livraison",
+        "facturation",
+      ],
+    },
   },
 } as const
