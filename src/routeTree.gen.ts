@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedAgentRouteImport } from './routes/_authenticated/agent'
+import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedPortailRouteImport } from './routes/_authenticated/portail'
 
 const IndexRoute = IndexRouteImport.update({
@@ -28,6 +29,11 @@ const AuthenticatedAgentRoute = AuthenticatedAgentRouteImport.update({
   path: '/agent',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedPortailRoute = AuthenticatedPortailRouteImport.update({
   id: '/portail',
   path: '/portail',
@@ -37,11 +43,13 @@ const AuthenticatedPortailRoute = AuthenticatedPortailRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/agent': typeof AuthenticatedAgentRoute
+  '/analytics': typeof AuthenticatedAnalyticsRoute
   '/portail': typeof AuthenticatedPortailRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/agent': typeof AuthenticatedAgentRoute
+  '/analytics': typeof AuthenticatedAnalyticsRoute
   '/portail': typeof AuthenticatedPortailRoute
 }
 export interface FileRoutesById {
@@ -49,18 +57,20 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/_authenticated/agent': typeof AuthenticatedAgentRoute
+  '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
   '/_authenticated/portail': typeof AuthenticatedPortailRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/agent' | '/portail'
+  fullPaths: '/' | '/agent' | '/analytics' | '/portail'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/agent' | '/portail'
+  to: '/' | '/agent' | '/analytics' | '/portail'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/_authenticated/agent'
+    | '/_authenticated/analytics'
     | '/_authenticated/portail'
   fileRoutesById: FileRoutesById
 }
@@ -92,6 +102,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAgentRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/analytics': {
+      id: '/_authenticated/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AuthenticatedAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/portail': {
       id: '/_authenticated/portail'
       path: '/portail'
@@ -104,11 +121,13 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAgentRoute: typeof AuthenticatedAgentRoute
+  AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
   AuthenticatedPortailRoute: typeof AuthenticatedPortailRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAgentRoute: AuthenticatedAgentRoute,
+  AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
   AuthenticatedPortailRoute: AuthenticatedPortailRoute,
 }
 
