@@ -3,6 +3,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
+import { emailChangementStatut, emailConfirmationDepot } from "./email-templates";
+import { envoyerEmail } from "./notifications";
 import { qualifier, PAYS_UE } from "./qualification";
 
 /**
@@ -63,6 +65,20 @@ export const deposerReclamation = createServerFn({ method: "POST" })
       .single();
 
     if (error) throw new Error(error.message);
+
+    await envoyerEmail(
+      context.claims.email,
+      emailConfirmationDepot({
+        numero_dossier: claim.numero_dossier,
+        client_nom: claim.client_nom,
+        type_reclamation: claim.type_reclamation,
+        statut: claim.statut,
+        recevable: claim.recevable,
+        motif_qualification: claim.motif_qualification,
+        remede: claim.remede,
+      }),
+    );
+
     return claim;
   });
 
@@ -129,11 +145,12 @@ export const majStatutDossier = createServerFn({ method: "POST" })
 
     const { data: existing, error: readError } = await context.supabase
       .from("claims")
-      .select("date_creation")
+      .select("date_creation, statut")
       .eq("id", data.id)
       .single();
     if (readError) throw new Error(readError.message);
 
+    const statutPrecedent = existing.statut;
     const created = new Date(existing.date_creation).getTime();
     const patch =
       data.statut === "resolu"
@@ -153,6 +170,31 @@ export const majStatutDossier = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
     // TODO (extension Odoo) : émettre ici le webhook de mise à jour de statut.
+
+    if (statutPrecedent !== claim.statut) {
+      const { data: profile } = await context.supabase
+        .from("profiles")
+        .select("email")
+        .eq("id", claim.client_id)
+        .maybeSingle();
+
+      await envoyerEmail(
+        profile?.email,
+        emailChangementStatut(
+          {
+            numero_dossier: claim.numero_dossier,
+            client_nom: claim.client_nom,
+            type_reclamation: claim.type_reclamation,
+            statut: claim.statut,
+            recevable: claim.recevable,
+            motif_qualification: claim.motif_qualification,
+            remede: claim.remede,
+          },
+          statutPrecedent,
+        ),
+      );
+    }
+
     return claim;
   });
 
