@@ -18,8 +18,10 @@ import { qualifier, PAYS_UE } from "./qualification";
  *    `claims` et souscrire côté client au canal `claims:client_id=eq.<uid>` pour
  *    rafraîchir le stepper de statut sans rechargement.
  * 3. RGPD — seules les données strictement nécessaires au traitement sont
- *    stockées ; `consentement_rgpd` est obligatoire au dépôt et une purge
- *    automatique des dossiers résolus (> 3 ans) devra être planifiée.
+ *    stockées ; `consentement_rgpd` est obligatoire au dépôt. La purge des
+ *    dossiers résolus depuis plus de 3 ans est disponible (`purgerDossiersResolus`
+ *    ci-dessous, déclenchement manuel manager sur /equipe) ; automatiser son
+ *    déclenchement (ex. pg_cron) reste hors périmètre de ce MVP.
  */
 
 const createSchema = z.object({
@@ -259,4 +261,27 @@ export const dossiersAnalytics = createServerFn({ method: "GET" })
       .order("date_creation", { ascending: false });
     if (error) throw new Error(error.message);
     return data;
+  });
+
+const RETENTION_DOSSIERS_RESOLUS_ANS = 3;
+
+export const purgerDossiersResolus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const roles = await assertStaff(context);
+    if (!roles.includes("manager")) {
+      throw new Error("La purge RGPD est réservée au management.");
+    }
+
+    const seuil = new Date();
+    seuil.setFullYear(seuil.getFullYear() - RETENTION_DOSSIERS_RESOLUS_ANS);
+
+    const { data, error: purgeError } = await context.supabase
+      .from("claims")
+      .delete()
+      .eq("statut", "resolu")
+      .lt("date_resolution", seuil.toISOString())
+      .select("id");
+    if (purgeError) throw new Error(purgeError.message);
+    return { supprimes: data?.length ?? 0 };
   });
