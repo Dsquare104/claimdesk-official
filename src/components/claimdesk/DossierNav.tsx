@@ -2,12 +2,20 @@ import { Link } from "@tanstack/react-router";
 import { Scale } from "lucide-react";
 
 const onglets = [
-  { to: "/portail", label: "Portail client" },
-  { to: "/agent", label: "Traitement" },
-  { to: "/analytics", label: "Analytics" },
+  { to: "/portail", label: "Portail client", roles: ["client"] },
+  { to: "/agent", label: "Traitement", roles: ["agent", "manager"] },
+  { to: "/analytics", label: "Analytics", roles: ["manager"] },
 ] as const;
 
-export function DossierNav({ onSignOut }: { onSignOut?: () => void }) {
+export function DossierNav({
+  onSignOut,
+  roles = [],
+}: {
+  onSignOut?: () => void;
+  roles?: readonly string[];
+}) {
+  const visibles = onglets.filter((o) => o.roles.some((r) => roles.includes(r)));
+
   return (
     <header className="bg-ink text-ink-foreground">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 pt-5">
@@ -29,7 +37,7 @@ export function DossierNav({ onSignOut }: { onSignOut?: () => void }) {
       </div>
       {/* Onglets façon "chemise de dossier" */}
       <nav className="mx-auto mt-4 flex max-w-7xl gap-1 px-5">
-        {onglets.map((o) => (
+        {visibles.map((o) => (
           <Link
             key={o.to}
             to={o.to}
