@@ -6,13 +6,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/auth")({
@@ -48,7 +41,6 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [nom, setNom] = useState("");
-  const [role, setRole] = useState("client");
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -70,7 +62,7 @@ function AuthPage() {
       password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: { nom, role, consentement_rgpd: true },
+        data: { nom, consentement_rgpd: true },
       },
     });
     setLoading(false);
@@ -98,19 +90,35 @@ function AuthPage() {
       <div className="sheet-panel w-full max-w-md p-7">
         <Tabs defaultValue="login">
           <TabsList className="mb-6 w-full">
-            <TabsTrigger value="login" className="flex-1">Connexion</TabsTrigger>
-            <TabsTrigger value="signup" className="flex-1">Créer un accès</TabsTrigger>
+            <TabsTrigger value="login" className="flex-1">
+              Connexion
+            </TabsTrigger>
+            <TabsTrigger value="signup" className="flex-1">
+              Créer un accès
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="login">
             <form className="space-y-4" onSubmit={handleLogin}>
               <div className="space-y-2">
                 <Label htmlFor="email">Adresse e-mail</Label>
-                <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+                <Input
+                  id="email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="pwd">Mot de passe</Label>
-                <Input id="pwd" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+                <Input
+                  id="pwd"
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? "Vérification…" : "Accéder à mon espace"}
@@ -126,25 +134,29 @@ function AuthPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email2">Adresse e-mail</Label>
-                <Input id="email2" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+                <Input
+                  id="email2"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="pwd2">Mot de passe</Label>
-                <Input id="pwd2" type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
+                <Input
+                  id="pwd2"
+                  type="password"
+                  required
+                  minLength={8}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
               </div>
-              <div className="space-y-2">
-                <Label>Profil</Label>
-                {/* MVP : le profil est déclaratif. En production, les rôles agent/manager
-                    doivent être attribués par un administrateur, jamais à l'inscription. */}
-                <Select value={role} onValueChange={setRole}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="client">Client final</SelectItem>
-                    <SelectItem value="agent">Agent de traitement</SelectItem>
-                    <SelectItem value="manager">Management</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <p className="text-xs text-muted-foreground">
+                Votre accès est créé avec le profil client. Les profils agent et management sont
+                attribués par le management depuis l'espace analytics.
+              </p>
               <p className="text-xs text-muted-foreground">
                 En créant un accès, vous consentez au traitement de vos données aux seules fins de
                 la gestion des réclamations (RGPD).
