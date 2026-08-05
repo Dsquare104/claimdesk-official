@@ -1,1 +1,9 @@
 project_id = "itdvmneawqxzqhmnequj"
+
+# Comptes auto-validés à l'inscription : pas de système d'envoi de mail de
+# confirmation. Voir GUIDE_PLATEFORME.md §2. À vérifier/activer aussi côté
+# dashboard Supabase (Authentication > Providers > Email > "Confirm email"),
+# ce fichier n'est pas garanti d'être synchronisé automatiquement par Lovable
+# Cloud sur ce projet.
+[auth.email]
+enable_confirmations = false

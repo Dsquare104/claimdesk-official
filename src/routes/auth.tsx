@@ -61,7 +61,6 @@ function AuthPage() {
       email,
       password,
       options: {
-        emailRedirectTo: window.location.origin,
         data: { nom, consentement_rgpd: true },
       },
     });
@@ -71,7 +70,9 @@ function AuthPage() {
       return;
     }
     if (!data.session) {
-      toast.success("Compte créé. Confirmez votre adresse e-mail pour accéder à ClaimDesk.");
+      // Ne devrait pas arriver : la confirmation par e-mail est désactivée
+      // (compte auto-validé à l'inscription, cf. supabase/config.toml).
+      toast.success("Compte créé. Vous pouvez maintenant vous connecter.");
       return;
     }
     navigate({ to: await destinationFor(data.session.user.id), replace: true });
@@ -155,7 +156,7 @@ function AuthPage() {
               </div>
               <p className="text-xs text-muted-foreground">
                 Votre accès est créé avec le profil client. Les profils agent et management sont
-                attribués par le management depuis l'espace analytics.
+                attribués par le management depuis l'espace Équipe.
               </p>
               <p className="text-xs text-muted-foreground">
                 En créant un accès, vous consentez au traitement de vos données aux seules fins de
