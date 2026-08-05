@@ -12,13 +12,7 @@ const tone: Record<Statut, string> = {
 };
 
 /** Badge "tampon officiel" — métaphore signature de ClaimDesk. */
-export function StatutStamp({
-  statut,
-  className,
-}: {
-  statut: Statut;
-  className?: string;
-}) {
+export function StatutStamp({ statut, className }: { statut: Statut; className?: string }) {
   return (
     <span
       className={cn(
