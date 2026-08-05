@@ -87,18 +87,21 @@ export type Database = {
         Row: {
           consentement_rgpd: boolean
           created_at: string
+          email: string | null
           id: string
           nom: string | null
         }
         Insert: {
           consentement_rgpd?: boolean
           created_at?: string
+          email?: string | null
           id: string
           nom?: string | null
         }
         Update: {
           consentement_rgpd?: boolean
           created_at?: string
+          email?: string | null
           id?: string
           nom?: string | null
         }
