@@ -1,4 +1,4 @@
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouteContext } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +15,7 @@ export function AppShell({
 }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { roles } = useRouteContext({ from: "/_authenticated" });
 
   async function handleSignOut() {
     await queryClient.cancelQueries();
@@ -25,7 +26,7 @@ export function AppShell({
 
   return (
     <div className="min-h-screen">
-      <DossierNav onSignOut={handleSignOut} />
+      <DossierNav onSignOut={handleSignOut} roles={roles} />
       <main className="mx-auto max-w-7xl px-5 py-10">
         <div className="mb-8 border-b border-border pb-5">
           <h1 className="text-3xl text-foreground">{title}</h1>
