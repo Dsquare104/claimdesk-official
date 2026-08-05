@@ -103,8 +103,8 @@ function Index() {
       </main>
 
       <footer className="border-t border-border px-5 py-8 text-center text-xs text-muted-foreground">
-        OMNIVIA · ClaimDesk — qualification indicative fondée sur les directives 2011/83/UE et
-        (UE) 2019/771.
+        OMNIVIA · ClaimDesk — qualification indicative fondée sur les directives 2011/83/UE et (UE)
+        2019/771.
       </footer>
     </div>
   );

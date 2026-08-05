@@ -17,11 +17,11 @@ médiateur.
 
 ## 2. Les trois profils
 
-| Profil | Ce qu'il peut faire | Écrans accessibles |
-|---|---|---|
-| **Client** | Déposer une réclamation, suivre l'avancement de ses propres dossiers | Portail client, Mes dossiers |
-| **Agent** | Voir tous les dossiers, les faire avancer (instruction, résolu, escalade), ajouter un commentaire interne | Traitement |
-| **Manager** | Tout ce que fait l'agent, + piloter les KPI, attribuer les rôles agent/manager, purger les dossiers RGPD | Traitement, Analytics, Équipe |
+| Profil      | Ce qu'il peut faire                                                                                       | Écrans accessibles            |
+| ----------- | --------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| **Client**  | Déposer une réclamation, suivre l'avancement de ses propres dossiers                                      | Portail client, Mes dossiers  |
+| **Agent**   | Voir tous les dossiers, les faire avancer (instruction, résolu, escalade), ajouter un commentaire interne | Traitement                    |
+| **Manager** | Tout ce que fait l'agent, + piloter les KPI, attribuer les rôles agent/manager, purger les dossiers RGPD  | Traitement, Analytics, Équipe |
 
 Un compte n'a **que le rôle qui lui a été attribué** : la navigation
 n'affiche que les onglets correspondants (un client ne voit jamais les onglets
@@ -86,10 +86,10 @@ réellement selon le choix fait par chaque État membre lors de la transposition
 (la directive fixe un plancher de 12 mois, que chaque pays peut porter à 24
 mois) :
 
-| Pays | Présomption de défaut |
-|---|---|
-| France, Espagne, Belgique, Pologne | 24 mois |
-| Allemagne, Italie, Pays-Bas | 12 mois |
+| Pays                               | Présomption de défaut |
+| ---------------------------------- | --------------------- |
+| France, Espagne, Belgique, Pologne | 24 mois               |
+| Allemagne, Italie, Pays-Bas        | 12 mois               |
 
 Ces valeurs sont une synthèse de recherche (sources citées en commentaire
 dans `qualification.ts`), **pas un avis juridique formel** — à faire valider
@@ -146,11 +146,11 @@ Des comptes de démonstration existent pour explorer les trois profils sans
 créer de compte manuellement (voir `scripts/seed-demo-users.ts` et
 `supabase/seed-roles.sql`) :
 
-| Rôle | E-mail |
-|---|---|
-| Client | `client1.demo@claimdesk.test` |
-| Client | `client2.demo@claimdesk.test` |
-| Agent | `agent.demo@claimdesk.test` |
+| Rôle    | E-mail                        |
+| ------- | ----------------------------- |
+| Client  | `client1.demo@claimdesk.test` |
+| Client  | `client2.demo@claimdesk.test` |
+| Agent   | `agent.demo@claimdesk.test`   |
 | Manager | `manager.demo@claimdesk.test` |
 
 Ces comptes possèdent déjà des dossiers de démonstration variés (voir
