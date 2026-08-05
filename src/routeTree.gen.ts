@@ -14,6 +14,8 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAgentRouteImport } from './routes/_authenticated/agent'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
+import { Route as AuthenticatedEquipeRouteImport } from './routes/_authenticated/equipe'
+import { Route as AuthenticatedMesDossiersRouteImport } from './routes/_authenticated/mes-dossiers'
 import { Route as AuthenticatedPortailRouteImport } from './routes/_authenticated/portail'
 
 const IndexRoute = IndexRouteImport.update({
@@ -40,6 +42,17 @@ const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedEquipeRoute = AuthenticatedEquipeRouteImport.update({
+  id: '/equipe',
+  path: '/equipe',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMesDossiersRoute =
+  AuthenticatedMesDossiersRouteImport.update({
+    id: '/mes-dossiers',
+    path: '/mes-dossiers',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPortailRoute = AuthenticatedPortailRouteImport.update({
   id: '/portail',
   path: '/portail',
@@ -51,6 +64,8 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/agent': typeof AuthenticatedAgentRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
+  '/equipe': typeof AuthenticatedEquipeRoute
+  '/mes-dossiers': typeof AuthenticatedMesDossiersRoute
   '/portail': typeof AuthenticatedPortailRoute
 }
 export interface FileRoutesByTo {
@@ -58,6 +73,8 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/agent': typeof AuthenticatedAgentRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
+  '/equipe': typeof AuthenticatedEquipeRoute
+  '/mes-dossiers': typeof AuthenticatedMesDossiersRoute
   '/portail': typeof AuthenticatedPortailRoute
 }
 export interface FileRoutesById {
@@ -67,13 +84,29 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/agent': typeof AuthenticatedAgentRoute
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
+  '/_authenticated/equipe': typeof AuthenticatedEquipeRoute
+  '/_authenticated/mes-dossiers': typeof AuthenticatedMesDossiersRoute
   '/_authenticated/portail': typeof AuthenticatedPortailRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/agent' | '/analytics' | '/portail'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/agent'
+    | '/analytics'
+    | '/equipe'
+    | '/mes-dossiers'
+    | '/portail'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/agent' | '/analytics' | '/portail'
+  to:
+    | '/'
+    | '/auth'
+    | '/agent'
+    | '/analytics'
+    | '/equipe'
+    | '/mes-dossiers'
+    | '/portail'
   id:
     | '__root__'
     | '/'
@@ -81,6 +114,8 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/agent'
     | '/_authenticated/analytics'
+    | '/_authenticated/equipe'
+    | '/_authenticated/mes-dossiers'
     | '/_authenticated/portail'
   fileRoutesById: FileRoutesById
 }
@@ -127,6 +162,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAnalyticsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/equipe': {
+      id: '/_authenticated/equipe'
+      path: '/equipe'
+      fullPath: '/equipe'
+      preLoaderRoute: typeof AuthenticatedEquipeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/mes-dossiers': {
+      id: '/_authenticated/mes-dossiers'
+      path: '/mes-dossiers'
+      fullPath: '/mes-dossiers'
+      preLoaderRoute: typeof AuthenticatedMesDossiersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/portail': {
       id: '/_authenticated/portail'
       path: '/portail'
@@ -140,12 +189,16 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAgentRoute: typeof AuthenticatedAgentRoute
   AuthenticatedAnalyticsRoute: typeof AuthenticatedAnalyticsRoute
+  AuthenticatedEquipeRoute: typeof AuthenticatedEquipeRoute
+  AuthenticatedMesDossiersRoute: typeof AuthenticatedMesDossiersRoute
   AuthenticatedPortailRoute: typeof AuthenticatedPortailRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAgentRoute: AuthenticatedAgentRoute,
   AuthenticatedAnalyticsRoute: AuthenticatedAnalyticsRoute,
+  AuthenticatedEquipeRoute: AuthenticatedEquipeRoute,
+  AuthenticatedMesDossiersRoute: AuthenticatedMesDossiersRoute,
   AuthenticatedPortailRoute: AuthenticatedPortailRoute,
 }
 
