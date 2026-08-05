@@ -37,6 +37,10 @@ d'inscription. Un manager promeut ensuite un compte existant vers `agent` ou
 volontaire : cela évite qu'un compte s'auto-attribue un rôle sensible en
 contournant l'interface.
 
+Le compte est **auto-validé dès l'inscription** : il n'y a pas de système
+d'envoi de mail de confirmation à mettre en place, le client accède
+immédiatement à son espace après avoir créé son accès.
+
 ## 3. Cycle de vie d'un dossier
 
 ```
