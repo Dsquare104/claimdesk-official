@@ -35,17 +35,29 @@ const REGLES_HARMONISEES_UE: CountryRules = {
   nonConformitePresomptionMois: 12,
 };
 
-// TODO (juridique, par pays) : chaque entrée reprend pour l'instant le socle harmonisé UE
-// à l'identique — aucune variante nationale n'a encore été validée. À compléter avec un
-// juriste par pays avant mise en production (voir §7 de PROJET_CLAIMDESK.md).
+// Valeurs de délai de rétractation et de garantie légale : recherche menée (août 2026)
+// sans trouver de variante nationale parmi ces 7 pays au-delà du socle harmonisé UE — les
+// deux restent alignées sur le plancher partout. Seule la période de présomption de défaut
+// (article 11(1) de la directive (UE) 2019/771) varie réellement d'un pays à l'autre, les
+// États membres ayant chacun choisi entre le plancher de 12 mois et l'option à 24 mois.
+// Sources (transpositions nationales, vérifiées août 2026) :
+//   France    : Code de la consommation, art. L217-7 (Ord. 2021-1247) — 24 mois
+//   Allemagne : BGB § 477 (réforme au 1er janvier 2022) — 12 mois
+//   Espagne   : RDL 1/2007, art. 121 (RDL 7/2021, en vigueur 1er janvier 2022) — 24 mois
+//   Italie    : Codice del Consumo, art. 132 (D.Lgs. 170/2021) — 12 mois
+//   Belgique  : Code de droit économique (en vigueur 1er juin 2022) — 24 mois
+//   Pays-Bas  : Burgerlijk Wetboek, art. 7:18 al. 2 (en vigueur 1er janvier 2022) — 12 mois
+//   Pologne   : Kodeks cywilny, art. 556² (loi du 4 novembre 2022) — 24 mois
+// Ceci reste une synthèse de recherche, pas un avis juridique : le droit évolue et chaque
+// valeur doit être validée par un juriste local avant mise en production.
 export const REGLES_PAR_PAYS: Record<Pays, CountryRules> = {
-  France: { ...REGLES_HARMONISEES_UE },
-  Allemagne: { ...REGLES_HARMONISEES_UE },
-  Espagne: { ...REGLES_HARMONISEES_UE },
-  Italie: { ...REGLES_HARMONISEES_UE },
-  Belgique: { ...REGLES_HARMONISEES_UE },
-  "Pays-Bas": { ...REGLES_HARMONISEES_UE },
-  Pologne: { ...REGLES_HARMONISEES_UE },
+  France: { ...REGLES_HARMONISEES_UE, nonConformitePresomptionMois: 24 },
+  Allemagne: { ...REGLES_HARMONISEES_UE, nonConformitePresomptionMois: 12 },
+  Espagne: { ...REGLES_HARMONISEES_UE, nonConformitePresomptionMois: 24 },
+  Italie: { ...REGLES_HARMONISEES_UE, nonConformitePresomptionMois: 12 },
+  Belgique: { ...REGLES_HARMONISEES_UE, nonConformitePresomptionMois: 24 },
+  "Pays-Bas": { ...REGLES_HARMONISEES_UE, nonConformitePresomptionMois: 12 },
+  Pologne: { ...REGLES_HARMONISEES_UE, nonConformitePresomptionMois: 24 },
 };
 
 export function reglesPour(pays: Pays): CountryRules {

@@ -11,14 +11,21 @@ describe("reglesPour — règles par pays", () => {
     }
   });
 
-  it("reprend pour l'instant le socle harmonisé UE à l'identique pour tous les pays (placeholder en attente de validation juridique)", () => {
+  it("aligne délai de rétractation et garantie légale sur le socle harmonisé UE partout", () => {
     for (const pays of PAYS_UE) {
-      expect(REGLES_PAR_PAYS[pays]).toEqual({
-        retractationDelaiJours: 14,
-        nonConformiteGarantieMois: 24,
-        nonConformitePresomptionMois: 12,
-      });
+      expect(REGLES_PAR_PAYS[pays].retractationDelaiJours).toBe(14);
+      expect(REGLES_PAR_PAYS[pays].nonConformiteGarantieMois).toBe(24);
     }
+  });
+
+  it("applique la période de présomption de défaut choisie par chaque pays (article 11(1) directive (UE) 2019/771)", () => {
+    expect(REGLES_PAR_PAYS.France.nonConformitePresomptionMois).toBe(24);
+    expect(REGLES_PAR_PAYS.Allemagne.nonConformitePresomptionMois).toBe(12);
+    expect(REGLES_PAR_PAYS.Espagne.nonConformitePresomptionMois).toBe(24);
+    expect(REGLES_PAR_PAYS.Italie.nonConformitePresomptionMois).toBe(12);
+    expect(REGLES_PAR_PAYS.Belgique.nonConformitePresomptionMois).toBe(24);
+    expect(REGLES_PAR_PAYS["Pays-Bas"].nonConformitePresomptionMois).toBe(12);
+    expect(REGLES_PAR_PAYS.Pologne.nonConformitePresomptionMois).toBe(24);
   });
 });
 
@@ -67,7 +74,7 @@ describe("qualifier — rétractation", () => {
     expect(result.statut).toBe("rejete");
   });
 
-  it("applique les mêmes règles quel que soit le pays sélectionné (aucune variante encodée pour l'instant)", () => {
+  it("applique le même délai de rétractation quel que soit le pays (harmonisé UE, aucune variante trouvée)", () => {
     const france = qualifier(
       {
         pays: "France",
@@ -119,10 +126,10 @@ describe("qualifier — non-conformité", () => {
     expect(result.statut).not.toBe("rejete");
   });
 
-  it("bascule la charge de la preuve au consommateur à exactement 12 mois depuis la livraison", () => {
+  it("bascule la charge de la preuve au consommateur à exactement 12 mois depuis la livraison (Allemagne, présomption à 12 mois)", () => {
     const result = qualifier(
       {
-        pays: "France",
+        pays: "Allemagne",
         type_reclamation: "non_conformite",
         date_achat: "2024-02-15",
         date_livraison: "2025-01-15",
@@ -133,10 +140,10 @@ describe("qualifier — non-conformité", () => {
     expect(result.remede).toBe("Réparation ou remplacement");
   });
 
-  it("présume le défaut antérieur (charge vendeur) à 11 mois depuis la livraison", () => {
+  it("présume le défaut antérieur (charge vendeur) à 11 mois depuis la livraison (Allemagne, présomption à 12 mois)", () => {
     const result = qualifier(
       {
-        pays: "France",
+        pays: "Allemagne",
         type_reclamation: "non_conformite",
         date_achat: "2024-02-15",
         date_livraison: "2025-02-15",
@@ -159,6 +166,22 @@ describe("qualifier — non-conformité", () => {
     );
     expect(result.recevable).toBe(true);
     expect(result.remede).toBe("Réparation, remplacement ou remboursement");
+  });
+
+  it("à 15 mois depuis la livraison, la charge de la preuve diffère selon le pays (présomption 24 mois en France, 12 mois en Allemagne)", () => {
+    const input = {
+      type_reclamation: "non_conformite",
+      date_achat: "2024-10-15",
+      date_livraison: "2024-10-15",
+    } as const;
+
+    const france = qualifier({ ...input, pays: "France" }, TODAY);
+    expect(france.recevable).toBe(true);
+    expect(france.remede).toBe("Réparation, remplacement ou remboursement");
+
+    const allemagne = qualifier({ ...input, pays: "Allemagne" }, TODAY);
+    expect(allemagne.recevable).toBe(true);
+    expect(allemagne.remede).toBe("Réparation ou remplacement");
   });
 });
 
