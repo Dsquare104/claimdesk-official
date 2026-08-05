@@ -3,6 +3,7 @@ import { Scale } from "lucide-react";
 
 const onglets = [
   { to: "/portail", label: "Portail client", roles: ["client"] },
+  { to: "/mes-dossiers", label: "Mes dossiers", roles: ["client"] },
   { to: "/agent", label: "Traitement", roles: ["agent", "manager"] },
   { to: "/analytics", label: "Analytics", roles: ["manager"] },
   { to: "/equipe", label: "Équipe", roles: ["manager"] },
