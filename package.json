@@ -11,7 +11,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "vitest run",
-    "seed:demo-users": "bun run scripts/seed-demo-users.ts"
+    "seed:demo-users": "bun run scripts/seed-demo-users.ts",
+    "seed:demo-claims": "bun run scripts/seed-demo-claims.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
