@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
 import { qualifier, PAYS_UE } from "./qualification";
 
 /**
@@ -22,12 +24,7 @@ const createSchema = z.object({
   client_nom: z.string().trim().min(2).max(120),
   pays: z.enum(PAYS_UE),
   produit: z.string().trim().min(2).max(160),
-  type_reclamation: z.enum([
-    "retractation",
-    "non_conformite",
-    "livraison",
-    "facturation",
-  ]),
+  type_reclamation: z.enum(["retractation", "non_conformite", "livraison", "facturation"]),
   description: z.string().trim().min(10).max(2000),
   date_achat: z.string().min(10),
   date_livraison: z.string().min(10).nullable().optional(),
@@ -94,7 +91,7 @@ export const monProfil = createServerFn({ method: "GET" })
     };
   });
 
-async function assertStaff(context: { supabase: any; userId: string }) {
+async function assertStaff(context: { supabase: SupabaseClient<Database>; userId: string }) {
   const { data } = await context.supabase
     .from("user_roles")
     .select("role")
@@ -143,10 +140,7 @@ export const majStatutDossier = createServerFn({ method: "POST" })
             statut: data.statut,
             agent_assigne_id: context.userId,
             date_resolution: new Date().toISOString(),
-            temps_traitement_jours: Math.max(
-              0,
-              Math.round((Date.now() - created) / 86_400_000),
-            ),
+            temps_traitement_jours: Math.max(0, Math.round((Date.now() - created) / 86_400_000)),
           }
         : { statut: data.statut, agent_assigne_id: context.userId };
 
@@ -175,6 +169,34 @@ export const enregistrerCommentaire = createServerFn({ method: "POST" })
       .from("claims")
       .update({ commentaire_interne: data.commentaire_interne })
       .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+const attribuerRoleSchema = z.object({
+  email: z.string().trim().email(),
+  role: z.enum(["agent", "manager"]),
+});
+
+export const attribuerRole = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => attribuerRoleSchema.parse(data))
+  .handler(async ({ data, context }) => {
+    const roles = await assertStaff(context);
+    if (!roles.includes("manager")) {
+      throw new Error("L'attribution de rôle est réservée au management.");
+    }
+    const { data: profile, error: profileError } = await context.supabase
+      .from("profiles")
+      .select("id")
+      .eq("email", data.email)
+      .maybeSingle();
+    if (profileError) throw new Error(profileError.message);
+    if (!profile) throw new Error(`Aucun compte trouvé pour ${data.email}.`);
+
+    const { error } = await context.supabase
+      .from("user_roles")
+      .upsert({ user_id: profile.id, role: data.role }, { onConflict: "user_id,role" });
     if (error) throw new Error(error.message);
     return { ok: true };
   });

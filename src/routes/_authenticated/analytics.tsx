@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
+import { toast } from "sonner";
 import {
   Bar,
   BarChart,
@@ -16,6 +17,9 @@ import {
   YAxis,
 } from "recharts";
 import { AppShell } from "@/components/claimdesk/AppShell";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -23,8 +27,69 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { dossiersAnalytics } from "@/lib/claims.functions";
+import { attribuerRole, dossiersAnalytics } from "@/lib/claims.functions";
 import { LIBELLES_TYPE, PAYS_UE, type TypeReclamation } from "@/lib/qualification";
+
+function GestionRoles() {
+  const submit = useServerFn(attribuerRole);
+  const queryClient = useQueryClient();
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState<"agent" | "manager">("agent");
+
+  const mutation = useMutation({
+    mutationFn: () => submit({ data: { email, role } }),
+    onSuccess: () => {
+      toast.success(`Rôle ${role} attribué à ${email}`);
+      setEmail("");
+      queryClient.invalidateQueries({ queryKey: ["analytics"] });
+    },
+    onError: (e: Error) => toast.error(e.message || "Attribution impossible."),
+  });
+
+  return (
+    <div className="sheet-panel mt-8 p-6">
+      <h2 className="mb-1 text-lg">Attribution des rôles</h2>
+      <p className="mb-4 text-sm text-muted-foreground">
+        Promouvez un compte existant (créé avec le profil client par défaut) vers agent ou
+        management, à partir de son e-mail d'inscription.
+      </p>
+      <form
+        className="flex flex-wrap items-end gap-3"
+        onSubmit={(e) => {
+          e.preventDefault();
+          mutation.mutate();
+        }}
+      >
+        <div className="space-y-2">
+          <Label htmlFor="role-email">E-mail du compte</Label>
+          <Input
+            id="role-email"
+            type="email"
+            required
+            className="w-64"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>Rôle</Label>
+          <Select value={role} onValueChange={(v) => setRole(v as "agent" | "manager")}>
+            <SelectTrigger className="w-44">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="agent">Agent de traitement</SelectItem>
+              <SelectItem value="manager">Management</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <Button type="submit" disabled={mutation.isPending}>
+          {mutation.isPending ? "Attribution…" : "Attribuer"}
+        </Button>
+      </form>
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/_authenticated/analytics")({
   head: () => ({
@@ -87,8 +152,7 @@ function AnalyticsPage() {
   }
 
   const all = query.data ?? [];
-  const limite =
-    periode === "tout" ? 0 : Date.now() - Number(periode) * 86_400_000;
+  const limite = periode === "tout" ? 0 : Date.now() - Number(periode) * 86_400_000;
   const rows = all.filter(
     (d) =>
       (pays === "tous" || d.pays === pays) &&
@@ -102,13 +166,9 @@ function AnalyticsPage() {
   const premierContact = rows.filter(
     (d) => d.recevable === true && (d.statut === "resolu" || d.statut === "qualifie"),
   ).length;
-  const tauxPremierContact = rows.length
-    ? Math.round((premierContact / rows.length) * 100)
-    : 0;
+  const tauxPremierContact = rows.length ? Math.round((premierContact / rows.length) * 100) : 0;
   const tempsMoyen = resolus.length
-    ? (
-        resolus.reduce((s, d) => s + (d.temps_traitement_jours ?? 0), 0) / resolus.length
-      ).toFixed(1)
+    ? (resolus.reduce((s, d) => s + (d.temps_traitement_jours ?? 0), 0) / resolus.length).toFixed(1)
     : "—";
 
   const parPays = PAYS_UE.map((p) => ({
@@ -130,19 +190,27 @@ function AnalyticsPage() {
     >
       <div className="mb-6 flex flex-wrap gap-3">
         <Select value={periode} onValueChange={setPeriode}>
-          <SelectTrigger className="w-52"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-52">
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             {PERIODES.map((p) => (
-              <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+              <SelectItem key={p.value} value={p.value}>
+                {p.label}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
         <Select value={pays} onValueChange={setPays}>
-          <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-44">
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="tous">Tous les pays</SelectItem>
             {PAYS_UE.map((p) => (
-              <SelectItem key={p} value={p}>{p}</SelectItem>
+              <SelectItem key={p} value={p}>
+                {p}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -166,7 +234,14 @@ function AnalyticsPage() {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={parPays}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                <XAxis dataKey="pays" tick={{ fontSize: 11 }} interval={0} angle={-20} dy={10} height={50} />
+                <XAxis
+                  dataKey="pays"
+                  tick={{ fontSize: 11 }}
+                  interval={0}
+                  angle={-20}
+                  dy={10}
+                  height={50}
+                />
                 <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
                 <Tooltip />
                 <Bar dataKey="dossiers" fill="var(--color-ink)" radius={[4, 4, 0, 0]} />
@@ -196,6 +271,8 @@ function AnalyticsPage() {
           </div>
         </div>
       </div>
+
+      <GestionRoles />
     </AppShell>
   );
 }
