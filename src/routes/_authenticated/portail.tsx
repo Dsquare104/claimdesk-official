@@ -1,11 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
 import { CheckCircle2, FileText, XCircle } from "lucide-react";
 import { AppShell } from "@/components/claimdesk/AppShell";
-import { StatutStamp } from "@/components/claimdesk/StatutStamp";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,13 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { deposerReclamation, mesDossiers } from "@/lib/claims.functions";
-import {
-  LIBELLES_TYPE,
-  PAYS_UE,
-  type Statut,
-  type TypeReclamation,
-} from "@/lib/qualification";
+import { deposerReclamation } from "@/lib/claims.functions";
+import { LIBELLES_TYPE, PAYS_UE, type TypeReclamation } from "@/lib/qualification";
 
 export const Route = createFileRoute("/_authenticated/portail")({
   head: () => ({
@@ -45,40 +39,7 @@ export const Route = createFileRoute("/_authenticated/portail")({
   component: PortailPage,
 });
 
-const ETAPES: Statut[] = ["cree", "qualifie", "instruction", "resolu"];
-
-function Stepper({ statut }: { statut: Statut }) {
-  const terminal = statut === "rejete" || statut === "escalade";
-  const index = terminal ? -1 : ETAPES.indexOf(statut);
-  return (
-    <div className="flex flex-wrap items-center gap-2 text-xs">
-      {ETAPES.map((etape, i) => (
-        <span key={etape} className="flex items-center gap-2">
-          <span
-            className={
-              i <= index
-                ? "rounded-full bg-ink px-3 py-1 font-medium text-ink-foreground"
-                : "rounded-full border border-border px-3 py-1 text-muted-foreground"
-            }
-          >
-            {etape === "cree"
-              ? "Créé"
-              : etape === "qualifie"
-                ? "Qualifié"
-                : etape === "instruction"
-                  ? "Instruction"
-                  : "Résolu"}
-          </span>
-          {i < ETAPES.length - 1 ? <span className="text-border">—</span> : null}
-        </span>
-      ))}
-      {terminal ? <StatutStamp statut={statut} /> : null}
-    </div>
-  );
-}
-
 function PortailPage() {
-  const fetchMine = useServerFn(mesDossiers);
   const submit = useServerFn(deposerReclamation);
   const queryClient = useQueryClient();
   const [resultat, setResultat] = useState<{
@@ -98,8 +59,6 @@ function PortailPage() {
     date_livraison: "",
     consentement_rgpd: false,
   });
-
-  const dossiers = useQuery({ queryKey: ["mes-dossiers"], queryFn: () => fetchMine() });
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -179,9 +138,7 @@ function PortailPage() {
               <Label>Type de réclamation</Label>
               <Select
                 value={form.type_reclamation}
-                onValueChange={(v) =>
-                  setForm({ ...form, type_reclamation: v as TypeReclamation })
-                }
+                onValueChange={(v) => setForm({ ...form, type_reclamation: v as TypeReclamation })}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -271,33 +228,19 @@ function PortailPage() {
             </div>
           ) : null}
 
-          <div className="sheet-panel p-6">
-            <h2 className="mb-4 flex items-center gap-2 text-lg">
-              <FileText className="size-4 text-brass" /> Mes dossiers
+          <div className="sheet-panel space-y-3 p-6">
+            <h2 className="flex items-center gap-2 text-lg">
+              <FileText className="size-4 text-brass" /> Suivre mes dossiers
             </h2>
-            {dossiers.isLoading ? (
-              <p className="text-sm text-muted-foreground">Chargement…</p>
-            ) : !dossiers.data?.length ? (
-              <p className="text-sm text-muted-foreground">Aucun dossier déposé pour l'instant.</p>
-            ) : (
-              <ul className="space-y-4">
-                {dossiers.data.map((d) => (
-                  <li key={d.id} className="space-y-2 border-b border-border pb-4 last:border-0">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="dossier-num text-sm">{d.numero_dossier}</span>
-                      <StatutStamp statut={d.statut} />
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {LIBELLES_TYPE[d.type_reclamation]} · {d.produit} · {d.pays}
-                    </p>
-                    <Stepper statut={d.statut} />
-                    {d.motif_qualification ? (
-                      <p className="text-xs text-muted-foreground">{d.motif_qualification}</p>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
-            )}
+            <p className="text-sm text-muted-foreground">
+              Retrouvez la liste de toutes vos réclamations et leur statut d'avancement.
+            </p>
+            <Link
+              to="/mes-dossiers"
+              className="inline-flex items-center justify-center rounded-md bg-ink px-4 py-2 text-sm font-medium text-ink-foreground transition-opacity hover:opacity-90"
+            >
+              Voir mes dossiers
+            </Link>
           </div>
         </div>
       </div>

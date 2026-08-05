@@ -84,16 +84,34 @@ export const deposerReclamation = createServerFn({ method: "POST" })
     return claim;
   });
 
+const paginationSchema = z.object({
+  page: z.number().int().min(1).default(1),
+  pageSize: z.number().int().min(1).max(100).default(10),
+});
+
 export const mesDossiers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
+  .inputValidator((data: unknown) => paginationSchema.parse(data ?? {}))
+  .handler(async ({ data, context }) => {
+    const from = (data.page - 1) * data.pageSize;
+    const to = from + data.pageSize - 1;
+    const {
+      data: dossiers,
+      error,
+      count,
+    } = await context.supabase
       .from("claims")
-      .select("*")
+      .select("*", { count: "exact" })
       .eq("client_id", context.userId)
-      .order("date_creation", { ascending: false });
+      .order("date_creation", { ascending: false })
+      .range(from, to);
     if (error) throw new Error(error.message);
-    return data;
+    return {
+      dossiers: dossiers ?? [],
+      total: count ?? 0,
+      page: data.page,
+      pageSize: data.pageSize,
+    };
   });
 
 export const monProfil = createServerFn({ method: "GET" })
@@ -122,16 +140,39 @@ async function assertStaff(context: { supabase: SupabaseClient<Database>; userId
   return roles;
 }
 
+const dossiersQuerySchema = paginationSchema.extend({
+  pays: z.enum(PAYS_UE).optional(),
+  statut: z.enum(["cree", "qualifie", "rejete", "instruction", "resolu", "escalade"]).optional(),
+  type_reclamation: z
+    .enum(["retractation", "non_conformite", "livraison", "facturation"])
+    .optional(),
+});
+
 export const tousLesDossiers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((data: unknown) => dossiersQuerySchema.parse(data ?? {}))
+  .handler(async ({ data, context }) => {
     await assertStaff(context);
-    const { data, error } = await context.supabase
+
+    const from = (data.page - 1) * data.pageSize;
+    const to = from + data.pageSize - 1;
+
+    let query = context.supabase
       .from("claims")
-      .select("*")
+      .select("*", { count: "exact" })
       .order("date_creation", { ascending: false });
+    if (data.pays) query = query.eq("pays", data.pays);
+    if (data.statut) query = query.eq("statut", data.statut);
+    if (data.type_reclamation) query = query.eq("type_reclamation", data.type_reclamation);
+
+    const { data: dossiers, error, count } = await query.range(from, to);
     if (error) throw new Error(error.message);
-    return data;
+    return {
+      dossiers: dossiers ?? [],
+      total: count ?? 0,
+      page: data.page,
+      pageSize: data.pageSize,
+    };
   });
 
 const majSchema = z.object({

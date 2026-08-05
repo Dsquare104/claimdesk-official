@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/claimdesk/AppShell";
+import { PaginationBar } from "@/components/claimdesk/PaginationBar";
 import { StatutStamp } from "@/components/claimdesk/StatutStamp";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,17 +34,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  enregistrerCommentaire,
-  majStatutDossier,
-  tousLesDossiers,
-} from "@/lib/claims.functions";
-import {
-  LIBELLES_STATUT,
-  LIBELLES_TYPE,
-  PAYS_UE,
-  type Statut,
-} from "@/lib/qualification";
+import { enregistrerCommentaire, majStatutDossier, tousLesDossiers } from "@/lib/claims.functions";
+import { LIBELLES_STATUT, LIBELLES_TYPE, PAYS_UE, type Statut } from "@/lib/qualification";
 
 export const Route = createFileRoute("/_authenticated/agent")({
   head: () => ({
@@ -64,6 +56,8 @@ export const Route = createFileRoute("/_authenticated/agent")({
   component: AgentPage,
 });
 
+const PAGE_SIZE = 10;
+
 function AgentPage() {
   const fetchAll = useServerFn(tousLesDossiers);
   const setStatut = useServerFn(majStatutDossier);
@@ -73,10 +67,30 @@ function AgentPage() {
   const [filtrePays, setFiltrePays] = useState("tous");
   const [filtreStatut, setFiltreStatut] = useState("tous");
   const [filtreType, setFiltreType] = useState("tous");
+  const [page, setPage] = useState(1);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [commentaire, setCommentaire] = useState("");
 
-  const dossiers = useQuery({ queryKey: ["tous-dossiers"], queryFn: () => fetchAll() });
+  function appliquerFiltre(setter: (v: string) => void) {
+    return (v: string) => {
+      setter(v);
+      setPage(1);
+    };
+  }
+
+  const dossiers = useQuery({
+    queryKey: ["tous-dossiers", filtrePays, filtreStatut, filtreType, page],
+    queryFn: () =>
+      fetchAll({
+        data: {
+          page,
+          pageSize: PAGE_SIZE,
+          pays: filtrePays === "tous" ? undefined : (filtrePays as never),
+          statut: filtreStatut === "tous" ? undefined : (filtreStatut as never),
+          type_reclamation: filtreType === "tous" ? undefined : (filtreType as never),
+        },
+      }),
+  });
 
   const statutMutation = useMutation({
     mutationFn: (vars: { id: string; statut: Statut }) =>
@@ -97,12 +111,7 @@ function AgentPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const rows = (dossiers.data ?? []).filter(
-    (d) =>
-      (filtrePays === "tous" || d.pays === filtrePays) &&
-      (filtreStatut === "tous" || d.statut === filtreStatut) &&
-      (filtreType === "tous" || d.type_reclamation === filtreType),
-  );
+  const rows = dossiers.data?.dossiers ?? [];
   const selected = rows.find((d) => d.id === selectedId) ?? null;
 
   return (
@@ -111,30 +120,42 @@ function AgentPage() {
       subtitle="Consultez la qualification automatique de chaque dossier, puis faites-le avancer jusqu'à résolution ou escalade vers le médiateur de la consommation."
     >
       <div className="mb-6 flex flex-wrap gap-3">
-        <Select value={filtrePays} onValueChange={setFiltrePays}>
-          <SelectTrigger className="w-44"><SelectValue placeholder="Pays" /></SelectTrigger>
+        <Select value={filtrePays} onValueChange={appliquerFiltre(setFiltrePays)}>
+          <SelectTrigger className="w-44">
+            <SelectValue placeholder="Pays" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="tous">Tous les pays</SelectItem>
             {PAYS_UE.map((p) => (
-              <SelectItem key={p} value={p}>{p}</SelectItem>
+              <SelectItem key={p} value={p}>
+                {p}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
-        <Select value={filtreStatut} onValueChange={setFiltreStatut}>
-          <SelectTrigger className="w-44"><SelectValue placeholder="Statut" /></SelectTrigger>
+        <Select value={filtreStatut} onValueChange={appliquerFiltre(setFiltreStatut)}>
+          <SelectTrigger className="w-44">
+            <SelectValue placeholder="Statut" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="tous">Tous les statuts</SelectItem>
             {Object.entries(LIBELLES_STATUT).map(([k, v]) => (
-              <SelectItem key={k} value={k}>{v}</SelectItem>
+              <SelectItem key={k} value={k}>
+                {v}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
-        <Select value={filtreType} onValueChange={setFiltreType}>
-          <SelectTrigger className="w-56"><SelectValue placeholder="Type" /></SelectTrigger>
+        <Select value={filtreType} onValueChange={appliquerFiltre(setFiltreType)}>
+          <SelectTrigger className="w-56">
+            <SelectValue placeholder="Type" />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="tous">Tous les motifs</SelectItem>
             {Object.entries(LIBELLES_TYPE).map(([k, v]) => (
-              <SelectItem key={k} value={k}>{v}</SelectItem>
+              <SelectItem key={k} value={k}>
+                {v}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -155,7 +176,9 @@ function AgentPage() {
             <TableBody>
               {dossiers.isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-muted-foreground">Chargement…</TableCell>
+                  <TableCell colSpan={5} className="text-muted-foreground">
+                    Chargement…
+                  </TableCell>
                 </TableRow>
               ) : dossiers.error ? (
                 <TableRow>
@@ -185,12 +208,24 @@ function AgentPage() {
                     <TableCell>{d.client_nom}</TableCell>
                     <TableCell>{d.pays}</TableCell>
                     <TableCell>{LIBELLES_TYPE[d.type_reclamation]}</TableCell>
-                    <TableCell><StatutStamp statut={d.statut} /></TableCell>
+                    <TableCell>
+                      <StatutStamp statut={d.statut} />
+                    </TableCell>
                   </TableRow>
                 ))
               )}
             </TableBody>
           </Table>
+          {dossiers.data ? (
+            <div className="px-4 pb-2">
+              <PaginationBar
+                page={dossiers.data.page}
+                pageSize={dossiers.data.pageSize}
+                total={dossiers.data.total}
+                onPageChange={setPage}
+              />
+            </div>
+          ) : null}
         </div>
 
         <aside className="sheet-panel h-fit p-6">
@@ -205,24 +240,50 @@ function AgentPage() {
                 <StatutStamp statut={selected.statut} />
               </div>
               <dl className="grid grid-cols-2 gap-3 text-sm">
-                <div><dt className="text-muted-foreground">Client</dt><dd>{selected.client_nom}</dd></div>
-                <div><dt className="text-muted-foreground">Pays</dt><dd>{selected.pays}</dd></div>
-                <div><dt className="text-muted-foreground">Produit</dt><dd>{selected.produit}</dd></div>
-                <div><dt className="text-muted-foreground">Motif</dt><dd>{LIBELLES_TYPE[selected.type_reclamation]}</dd></div>
-                <div><dt className="text-muted-foreground">Achat</dt><dd>{selected.date_achat}</dd></div>
-                <div><dt className="text-muted-foreground">Livraison</dt><dd>{selected.date_livraison ?? "—"}</dd></div>
+                <div>
+                  <dt className="text-muted-foreground">Client</dt>
+                  <dd>{selected.client_nom}</dd>
+                </div>
+                <div>
+                  <dt className="text-muted-foreground">Pays</dt>
+                  <dd>{selected.pays}</dd>
+                </div>
+                <div>
+                  <dt className="text-muted-foreground">Produit</dt>
+                  <dd>{selected.produit}</dd>
+                </div>
+                <div>
+                  <dt className="text-muted-foreground">Motif</dt>
+                  <dd>{LIBELLES_TYPE[selected.type_reclamation]}</dd>
+                </div>
+                <div>
+                  <dt className="text-muted-foreground">Achat</dt>
+                  <dd>{selected.date_achat}</dd>
+                </div>
+                <div>
+                  <dt className="text-muted-foreground">Livraison</dt>
+                  <dd>{selected.date_livraison ?? "—"}</dd>
+                </div>
               </dl>
 
               <div className="rounded-md border border-border bg-secondary/50 p-4">
                 <p className="mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                   Moteur de qualification
                 </p>
-                <p className={selected.recevable ? "text-sm font-semibold text-forest" : "text-sm font-semibold text-brick"}>
+                <p
+                  className={
+                    selected.recevable
+                      ? "text-sm font-semibold text-forest"
+                      : "text-sm font-semibold text-brick"
+                  }
+                >
                   {selected.recevable ? "Recevable" : "Non recevable"}
                 </p>
                 <p className="mt-2 text-sm text-muted-foreground">{selected.motif_qualification}</p>
                 {selected.remede ? (
-                  <p className="mt-2 text-sm"><strong>Remède :</strong> {selected.remede}</p>
+                  <p className="mt-2 text-sm">
+                    <strong>Remède :</strong> {selected.remede}
+                  </p>
                 ) : null}
               </div>
 
@@ -259,7 +320,9 @@ function AgentPage() {
                     <AlertDialogFooter>
                       <AlertDialogCancel>Annuler</AlertDialogCancel>
                       <AlertDialogAction
-                        onClick={() => statutMutation.mutate({ id: selected.id, statut: "escalade" })}
+                        onClick={() =>
+                          statutMutation.mutate({ id: selected.id, statut: "escalade" })
+                        }
                       >
                         Confirmer l'escalade
                       </AlertDialogAction>
