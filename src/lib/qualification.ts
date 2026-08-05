@@ -18,19 +18,43 @@ export const PAYS_UE = [
 
 export type Pays = (typeof PAYS_UE)[number];
 
-export type TypeReclamation =
-  | "retractation"
-  | "non_conformite"
-  | "livraison"
-  | "facturation";
+export interface CountryRules {
+  retractationDelaiJours: number;
+  nonConformiteGarantieMois: number;
+  nonConformitePresomptionMois: number;
+}
 
-export type Statut =
-  | "cree"
-  | "qualifie"
-  | "rejete"
-  | "instruction"
-  | "resolu"
-  | "escalade";
+// Socle harmonisé par les directives UE (2011/83/UE — droit de rétractation ;
+// (UE) 2019/771 — conformité des biens, article 11(1)). Ce sont des planchers communs
+// à tous les États membres, pas des valeurs figées : les directives laissent des marges
+// de manœuvre nationales (ex. la période de présomption de défaut de l'article 11(1) peut
+// être portée jusqu'à 24 mois par un État membre au lieu du plancher de 12).
+const REGLES_HARMONISEES_UE: CountryRules = {
+  retractationDelaiJours: 14,
+  nonConformiteGarantieMois: 24,
+  nonConformitePresomptionMois: 12,
+};
+
+// TODO (juridique, par pays) : chaque entrée reprend pour l'instant le socle harmonisé UE
+// à l'identique — aucune variante nationale n'a encore été validée. À compléter avec un
+// juriste par pays avant mise en production (voir §7 de PROJET_CLAIMDESK.md).
+export const REGLES_PAR_PAYS: Record<Pays, CountryRules> = {
+  France: { ...REGLES_HARMONISEES_UE },
+  Allemagne: { ...REGLES_HARMONISEES_UE },
+  Espagne: { ...REGLES_HARMONISEES_UE },
+  Italie: { ...REGLES_HARMONISEES_UE },
+  Belgique: { ...REGLES_HARMONISEES_UE },
+  "Pays-Bas": { ...REGLES_HARMONISEES_UE },
+  Pologne: { ...REGLES_HARMONISEES_UE },
+};
+
+export function reglesPour(pays: Pays): CountryRules {
+  return REGLES_PAR_PAYS[pays] ?? REGLES_HARMONISEES_UE;
+}
+
+export type TypeReclamation = "retractation" | "non_conformite" | "livraison" | "facturation";
+
+export type Statut = "cree" | "qualifie" | "rejete" | "instruction" | "resolu" | "escalade";
 
 export const LIBELLES_TYPE: Record<TypeReclamation, string> = {
   retractation: "Rétractation",
@@ -49,6 +73,7 @@ export const LIBELLES_STATUT: Record<Statut, string> = {
 };
 
 export interface QualificationInput {
+  pays: Pays;
   type_reclamation: TypeReclamation;
   date_achat: string;
   date_livraison?: string | null;
@@ -77,6 +102,7 @@ export function qualifier(
   input: QualificationInput,
   today: Date = new Date(),
 ): QualificationResult {
+  const regles = reglesPour(input.pays);
   const achat = new Date(input.date_achat);
   const livraison = input.date_livraison ? new Date(input.date_livraison) : null;
 
@@ -86,40 +112,39 @@ export function qualifier(
         return {
           recevable: false,
           statut: "rejete",
-          motif_qualification:
-            "Rétractation non qualifiable : la date de livraison est requise pour calculer le délai légal de 14 jours calendaires.",
+          motif_qualification: `Rétractation non qualifiable : la date de livraison est requise pour calculer le délai légal de ${regles.retractationDelaiJours} jours calendaires.`,
           remede: null,
         };
       }
       const jours = joursEntre(livraison, today);
-      if (jours <= 14) {
+      if (jours <= regles.retractationDelaiJours) {
         return {
           recevable: true,
           statut: "qualifie",
-          motif_qualification: `Rétractation exercée ${jours} jour(s) après la livraison, soit dans le délai légal de 14 jours calendaires (directive 2011/83/UE). Dossier recevable.`,
+          motif_qualification: `Rétractation exercée ${jours} jour(s) après la livraison, soit dans le délai légal de ${regles.retractationDelaiJours} jours calendaires (directive 2011/83/UE). Dossier recevable.`,
           remede: "Remboursement intégral",
         };
       }
       return {
         recevable: false,
         statut: "rejete",
-        motif_qualification: `Rétractation exercée ${jours} jours après la livraison, au-delà du délai légal de 14 jours calendaires. Dossier non recevable à ce titre.`,
+        motif_qualification: `Rétractation exercée ${jours} jours après la livraison, au-delà du délai légal de ${regles.retractationDelaiJours} jours calendaires. Dossier non recevable à ce titre.`,
         remede: null,
       };
     }
 
     case "non_conformite": {
       const moisAchat = moisEntre(achat, today);
-      if (moisAchat >= 24) {
+      if (moisAchat >= regles.nonConformiteGarantieMois) {
         return {
           recevable: false,
           statut: "rejete",
-          motif_qualification: `Achat effectué il y a ${moisAchat} mois : la garantie légale de conformité de 24 mois est expirée. Dossier non recevable.`,
+          motif_qualification: `Achat effectué il y a ${moisAchat} mois : la garantie légale de conformité de ${regles.nonConformiteGarantieMois} mois est expirée. Dossier non recevable.`,
           remede: null,
         };
       }
       const moisLivraison = livraison ? moisEntre(livraison, today) : moisAchat;
-      if (moisLivraison < 12) {
+      if (moisLivraison < regles.nonConformitePresomptionMois) {
         return {
           recevable: true,
           statut: "qualifie",
@@ -130,7 +155,7 @@ export function qualifier(
       return {
         recevable: true,
         statut: "qualifie",
-        motif_qualification: `Achat il y a ${moisAchat} mois, dans la garantie légale de 24 mois. Au-delà de 12 mois après la livraison, la charge de la preuve du défaut incombe au consommateur. Dossier recevable.`,
+        motif_qualification: `Achat il y a ${moisAchat} mois, dans la garantie légale de ${regles.nonConformiteGarantieMois} mois. Au-delà de ${regles.nonConformitePresomptionMois} mois après la livraison, la charge de la preuve du défaut incombe au consommateur. Dossier recevable.`,
         remede: "Réparation ou remplacement",
       };
     }

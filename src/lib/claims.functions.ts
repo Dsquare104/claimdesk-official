@@ -36,6 +36,7 @@ export const deposerReclamation = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => createSchema.parse(data))
   .handler(async ({ data, context }) => {
     const result = qualifier({
+      pays: data.pays,
       type_reclamation: data.type_reclamation,
       date_achat: data.date_achat,
       date_livraison: data.date_livraison ?? null,
