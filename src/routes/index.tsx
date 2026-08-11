@@ -75,10 +75,16 @@ function Index() {
           </p>
           <div className="mt-9 flex flex-wrap gap-3">
             <Link
-              to="/auth"
+              to="/reclamation"
               className="rounded-md bg-brass px-5 py-2.5 text-sm font-semibold text-brass-foreground transition-opacity hover:opacity-90"
             >
-              Déposer une réclamation
+              Déposer une réclamation (sans compte)
+            </Link>
+            <Link
+              to="/suivi"
+              className="rounded-md border border-brass/50 px-5 py-2.5 text-sm font-medium text-brass transition-colors hover:bg-brass/15"
+            >
+              Suivre ma demande avec mon code
             </Link>
             <Link
               to="/auth"
