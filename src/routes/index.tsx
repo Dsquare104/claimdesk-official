@@ -62,29 +62,25 @@ function Index() {
           </Link>
         </div>
         <div className="mx-auto max-w-6xl px-5 pb-20 pt-14">
-          <p className="dossier-num text-xs uppercase text-brass">
-            Réf. interne · CD / UE-7 / 2026
-          </p>
+        
           <h1 className="mt-5 max-w-3xl font-serif text-4xl leading-tight sm:text-5xl">
-            La gestion des réclamations clients, instruite comme un dossier officiel.
+            Avez-vous une réclamation ? Nous sommes à l’écoute.
           </h1>
           <p className="mt-6 max-w-2xl text-ink-foreground/75">
-            ClaimDesk reçoit les réclamations des clients d'OMNIVIA en France, Allemagne, Espagne,
-            Italie, Belgique, Pays-Bas et Pologne, les qualifie au regard du droit européen de la
-            consommation, puis les suit jusqu'à résolution ou médiation.
+            Nous traitons vos demandes dans de brefs délais. Vous pouvez suivre votre dossier avec votre code unique.
           </p>
           <div className="mt-9 flex flex-wrap gap-3">
             <Link
               to="/reclamation"
               className="rounded-md bg-brass px-5 py-2.5 text-sm font-semibold text-brass-foreground transition-opacity hover:opacity-90"
             >
-              Déposer une réclamation (sans compte)
+              Déposer une réclamation
             </Link>
             <Link
               to="/suivi"
               className="rounded-md border border-brass/50 px-5 py-2.5 text-sm font-medium text-brass transition-colors hover:bg-brass/15"
             >
-              Suivre ma demande avec mon code
+              Suivre ma demande 
             </Link>
             <Link
               to="/auth"
