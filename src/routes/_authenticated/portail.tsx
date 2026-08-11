@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { deposerReclamation } from "@/lib/claims.functions";
 import { LIBELLES_TYPE, PAYS_UE, type TypeReclamation } from "@/lib/qualification";
+import { aujourdHuiISO, verifierDates } from "@/lib/dates";
 
 export const Route = createFileRoute("/_authenticated/portail")({
   head: () => ({
@@ -42,6 +43,7 @@ export const Route = createFileRoute("/_authenticated/portail")({
 function PortailPage() {
   const submit = useServerFn(deposerReclamation);
   const queryClient = useQueryClient();
+  const today = aujourdHuiISO();
   const [resultat, setResultat] = useState<{
     numero_dossier: string;
     recevable: boolean | null;
@@ -63,6 +65,14 @@ function PortailPage() {
   const mutation = useMutation({
     mutationFn: async () => {
       if (!form.consentement_rgpd) throw new Error("Le consentement RGPD est obligatoire.");
+      const erreurDates = verifierDates({
+        date_achat: form.date_achat,
+        date_livraison: form.date_livraison || null,
+      });
+      if (erreurDates === "dates")
+        throw new Error("La date de livraison ne peut pas être antérieure à la date d'achat.");
+      if (erreurDates === "futur")
+        throw new Error("Les dates ne peuvent pas être postérieures à aujourd'hui.");
       return submit({
         data: {
           client_nom: form.client_nom,
@@ -158,6 +168,7 @@ function PortailPage() {
                 id="achat"
                 type="date"
                 required
+                max={form.date_livraison || today}
                 value={form.date_achat}
                 onChange={(e) => setForm({ ...form, date_achat: e.target.value })}
               />
@@ -167,9 +178,14 @@ function PortailPage() {
               <Input
                 id="livraison"
                 type="date"
+                min={form.date_achat || undefined}
+                max={today}
                 value={form.date_livraison}
                 onChange={(e) => setForm({ ...form, date_livraison: e.target.value })}
               />
+              <p className="text-xs text-muted-foreground">
+                La livraison ne peut pas précéder l'achat, ni être future.
+              </p>
             </div>
           </div>
 

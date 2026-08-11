@@ -6,6 +6,7 @@ import type { Database } from "@/integrations/supabase/types";
 import { emailChangementStatut, emailConfirmationDepot } from "./email-templates";
 import { envoyerEmail } from "./notifications";
 import { qualifier, PAYS_UE } from "./qualification";
+import { verifierDates } from "./dates";
 
 /**
  * POINTS D'EXTENSION PRÉVUS (hors périmètre de ce MVP) :
@@ -24,16 +25,22 @@ import { qualifier, PAYS_UE } from "./qualification";
  *    déclenchement (ex. pg_cron) reste hors périmètre de ce MVP.
  */
 
-const createSchema = z.object({
-  client_nom: z.string().trim().min(2).max(120),
-  pays: z.enum(PAYS_UE),
-  produit: z.string().trim().min(2).max(160),
-  type_reclamation: z.enum(["retractation", "non_conformite", "livraison", "facturation"]),
-  description: z.string().trim().min(10).max(2000),
-  date_achat: z.string().min(10),
-  date_livraison: z.string().min(10).nullable().optional(),
-  consentement_rgpd: z.literal(true),
-});
+const createSchema = z
+  .object({
+    client_nom: z.string().trim().min(2).max(120),
+    pays: z.enum(PAYS_UE),
+    produit: z.string().trim().min(2).max(160),
+    type_reclamation: z.enum(["retractation", "non_conformite", "livraison", "facturation"]),
+    description: z.string().trim().min(10).max(2000),
+    date_achat: z.string().min(10),
+    date_livraison: z.string().min(10).nullable().optional(),
+    consentement_rgpd: z.literal(true),
+  })
+  .refine((d) => verifierDates(d) === null, {
+    message:
+      "Dates incohérentes : la date de livraison doit suivre la date d'achat et aucune date ne peut être future.",
+    path: ["date_livraison"],
+  });
 
 export const deposerReclamation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -215,14 +222,18 @@ export const majStatutDossier = createServerFn({ method: "POST" })
     // TODO (extension Odoo) : émettre ici le webhook de mise à jour de statut.
 
     if (statutPrecedent !== claim.statut) {
-      const { data: profile } = await context.supabase
-        .from("profiles")
-        .select("email")
-        .eq("id", claim.client_id)
-        .maybeSingle();
+      let destinataire: string | null = claim.client_email ?? null;
+      if (!destinataire && claim.client_id) {
+        const { data: profile } = await context.supabase
+          .from("profiles")
+          .select("email")
+          .eq("id", claim.client_id)
+          .maybeSingle();
+        destinataire = profile?.email ?? null;
+      }
 
       await envoyerEmail(
-        profile?.email,
+        destinataire,
         emailChangementStatut(
           {
             numero_dossier: claim.numero_dossier,

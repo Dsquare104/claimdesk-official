@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ReclamationRouteImport } from './routes/reclamation'
+import { Route as SuiviRouteImport } from './routes/suivi'
 import { Route as AuthenticatedAgentRouteImport } from './routes/_authenticated/agent'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedEquipeRouteImport } from './routes/_authenticated/equipe'
@@ -30,6 +32,16 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReclamationRoute = ReclamationRouteImport.update({
+  id: '/reclamation',
+  path: '/reclamation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SuiviRoute = SuiviRouteImport.update({
+  id: '/suivi',
+  path: '/suivi',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAgentRoute = AuthenticatedAgentRouteImport.update({
@@ -62,6 +74,8 @@ const AuthenticatedPortailRoute = AuthenticatedPortailRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/reclamation': typeof ReclamationRoute
+  '/suivi': typeof SuiviRoute
   '/agent': typeof AuthenticatedAgentRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/equipe': typeof AuthenticatedEquipeRoute
@@ -71,6 +85,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/reclamation': typeof ReclamationRoute
+  '/suivi': typeof SuiviRoute
   '/agent': typeof AuthenticatedAgentRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/equipe': typeof AuthenticatedEquipeRoute
@@ -82,6 +98,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/reclamation': typeof ReclamationRoute
+  '/suivi': typeof SuiviRoute
   '/_authenticated/agent': typeof AuthenticatedAgentRoute
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
   '/_authenticated/equipe': typeof AuthenticatedEquipeRoute
@@ -93,6 +111,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/reclamation'
+    | '/suivi'
     | '/agent'
     | '/analytics'
     | '/equipe'
@@ -102,6 +122,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/reclamation'
+    | '/suivi'
     | '/agent'
     | '/analytics'
     | '/equipe'
@@ -112,6 +134,8 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/reclamation'
+    | '/suivi'
     | '/_authenticated/agent'
     | '/_authenticated/analytics'
     | '/_authenticated/equipe'
@@ -123,6 +147,8 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ReclamationRoute: typeof ReclamationRoute
+  SuiviRoute: typeof SuiviRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -146,6 +172,20 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reclamation': {
+      id: '/reclamation'
+      path: '/reclamation'
+      fullPath: '/reclamation'
+      preLoaderRoute: typeof ReclamationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/suivi': {
+      id: '/suivi'
+      path: '/suivi'
+      fullPath: '/suivi'
+      preLoaderRoute: typeof SuiviRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/agent': {
@@ -209,6 +249,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ReclamationRoute: ReclamationRoute,
+  SuiviRoute: SuiviRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
