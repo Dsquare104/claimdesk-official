@@ -139,6 +139,30 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      deposer_reclamation_publique: {
+        Args: {
+          _client_email: string
+          _client_nom: string
+          _consentement_rgpd: boolean
+          _date_achat: string
+          _date_livraison: string
+          _description: string
+          _langue: string
+          _pays: string
+          _produit: string
+          _type_reclamation: Database["public"]["Enums"]["claim_type"]
+        }
+        Returns: {
+          client_nom: string
+          code_suivi: string
+          motif_qualification: string
+          numero_dossier: string
+          recevable: boolean
+          remede: string
+          statut: Database["public"]["Enums"]["claim_status"]
+          type_reclamation: Database["public"]["Enums"]["claim_type"]
+        }[]
+      }
       generer_code_suivi: { Args: never; Returns: string }
       has_role: {
         Args: {
@@ -146,6 +170,22 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      suivre_dossier_public: {
+        Args: { _client_email: string; _code_suivi: string }
+        Returns: {
+          code_suivi: string
+          date_creation: string
+          langue: string
+          motif_qualification: string
+          numero_dossier: string
+          pays: string
+          produit: string
+          recevable: boolean
+          remede: string
+          statut: Database["public"]["Enums"]["claim_status"]
+          type_reclamation: Database["public"]["Enums"]["claim_type"]
+        }[]
       }
     }
     Enums: {
