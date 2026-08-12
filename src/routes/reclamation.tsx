@@ -1,6 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
 import { CheckCircle2, Copy, XCircle } from "lucide-react";
@@ -47,7 +46,6 @@ export const Route = createFileRoute("/reclamation")({
 
 function ReclamationPage() {
   const navigate = useNavigate();
-  const submit = useServerFn(deposerReclamationPublique);
   const { langue, setLangue, t } = useLangue();
   const today = aujourdHuiISO();
 
@@ -86,19 +84,17 @@ function ReclamationPage() {
       });
       if (erreur === "dates") throw new Error(t("err.dates"));
       if (erreur === "futur") throw new Error(t("err.futur"));
-      return submit({
-        data: {
-          client_nom: form.client_nom,
-          client_email: form.client_email,
-          pays: form.pays,
-          langue,
-          produit: form.produit,
-          type_reclamation: form.type_reclamation,
-          description: form.description,
-          date_achat: form.date_achat,
-          date_livraison: form.date_livraison || null,
-          consentement_rgpd: true,
-        },
+      return deposerReclamationPublique({
+        client_nom: form.client_nom,
+        client_email: form.client_email,
+        pays: form.pays,
+        langue,
+        produit: form.produit,
+        type_reclamation: form.type_reclamation,
+        description: form.description,
+        date_achat: form.date_achat,
+        date_livraison: form.date_livraison || null,
+        consentement_rgpd: true,
       });
     },
     onSuccess: (claim) => {

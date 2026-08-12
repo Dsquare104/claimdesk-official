@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { z } from "zod";
 import { PublicShell } from "@/components/claimdesk/PublicShell";
@@ -39,7 +38,6 @@ export const Route = createFileRoute("/suivi")({
 
 function SuiviPage() {
   const { code } = Route.useSearch();
-  const rechercher = useServerFn(suivreDossierPublic);
   const { langue, setLangue, t } = useLangue();
 
   const [codeSuivi, setCodeSuivi] = useState(code ?? "");
@@ -47,7 +45,7 @@ function SuiviPage() {
   const [introuvable, setIntrouvable] = useState(false);
 
   const mutation = useMutation({
-    mutationFn: () => rechercher({ data: { code_suivi: codeSuivi, client_email: email } }),
+    mutationFn: () => suivreDossierPublic({ code_suivi: codeSuivi, client_email: email }),
     onSuccess: (dossier) => setIntrouvable(dossier === null),
   });
 
